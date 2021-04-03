@@ -3,7 +3,7 @@
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedLists            #-}
 {-# LANGUAGE OverloadedStrings          #-}
-
+{-# OPTIONS_GHC -fdefer-type-errors #-}
 -- | A parser for the STG language, modeled after the grammar given in the
 -- description in the 1992 paper
 -- <http://research.microsoft.com/apps/pubs/default.aspx?id=67083 (link)>
@@ -48,7 +48,8 @@ module Stg.Parser.Parser (
 import           Control.Applicative
 import           Control.Monad
 import           Data.Char                    (isSpace)
-import           Data.List                    as L
+import qualified Data.List                    as L
+import           Data.List                    
 import           Data.Functor
 import qualified Data.List.NonEmpty           as NonEmpty
 import qualified Data.Map.Strict              as M
@@ -56,19 +57,23 @@ import           Data.Maybe
 import           Data.Text                    (Text)
 import qualified Data.Text                    as T
 import           Text.Parser.Token.Highlight
-import           Text.PrettyPrint.ANSI.Leijen (Doc)
-import           Text.Trifecta                as Trifecta
+-- import           Text.PrettyPrint.ANSI.Leijen (Doc)
+import           Prettyprinter.Render.Terminal (AnsiStyle)
+import           Prettyprinter hiding(semi, parens, group) 
+import           Text.Trifecta 
+import qualified Text.Trifecta as Trifecta
 
 import Stg.Language
 
-
+instance MonadFail StgParser where
+    fail (StgParser p) = fail p
 
 -- | Parse STG source using a user-specified parser. To parse a full program,
 -- use @'parse' 'program'@.
 --
 -- >>> parse program "id = \\x -> x"
 -- Right (Program (Binds [(Var "id",LambdaForm [] NoUpdate [Var "x"] (AppF (Var "x") []))]))
-parse :: StgParser ast -> Text -> Either Doc ast
+parse :: StgParser ast -> Text -> Either (Doc AnsiStyle) ast
 parse (StgParser p) input = case parseString (whiteSpace *> p <* eof) mempty (T.unpack input) of
     Success a -> Right a
     Failure ErrInfo{ _errDoc = e } -> Left e

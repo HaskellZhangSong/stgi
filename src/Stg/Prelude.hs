@@ -29,7 +29,7 @@ import Stg.Prelude.Maybe
 import Stg.Prelude.Number
 import Stg.Prelude.Tuple
 
-{-# ANN module "HLint: ignore Use import/export shortcut" #-}
+-- {-# ANN module "HLint: ignore Use import/export shortcut" #-}
     -- Haddock doesn't like this trick :-/
 
 

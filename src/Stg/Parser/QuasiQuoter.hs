@@ -32,11 +32,13 @@ import qualified Data.Text                    as T
 import           Language.Haskell.TH
 import           Language.Haskell.TH.Lift
 import           Language.Haskell.TH.Quote
-import           Text.PrettyPrint.ANSI.Leijen hiding ((<>))
-
+-- import           Text.PrettyPrint.ANSI.Leijen hiding ((<>))
+import           Prettyprinter.Render.Terminal (AnsiStyle, renderStrict)
+import           Prettyprinter
 import           Stg.Language.Prettyprint
 import           Stg.Parser.Parser        (StgParser, parse)
 import qualified Stg.Parser.Parser        as Parser
+import           Prettyprinter.Util
 
 -- $setup
 -- >>> :set -XTemplateHaskell
@@ -94,7 +96,8 @@ stg = defaultQuoter { quoteExp = expQuoter }
     -- generated expression on success.
     quoteAs :: Lift ast => Text -> Parser.StgParser ast -> Text -> Either Text (Q Exp)
     quoteAs parserName parser input = fmap lift (case Parser.parse parser input of
-        Left err -> Left (prettyprintOldAnsi ("  -" <+> text (T.unpack parserName) <> ":" <+> plain (align err)))
+        Left err -> Left (renderStrict (layoutPretty defaultLayoutOptions 
+                                        ("  -" <+> (pretty parserName) <+> ":" <+> (align err))))-- (prettyprintOldAnsi ("  -" <+> text (T.unpack parserName) <> ":" <+> plain (align err)))
         Right r -> Right r )
 
 -- | Build a quasiquoter from a 'Parser'.
@@ -106,7 +109,8 @@ stgQQ
 stgQQ parser elementName = defaultQuoter { quoteExp  = expQuoter }
     where
     expQuoter input = case parse parser (T.pack input) of
-        Left err  -> fail (T.unpack ("Invalid STG " <> elementName <> ":\n" <> prettyprintOldAnsi (plain err)))
+        Left err  -> fail (T.unpack ("Invalid STG " <> elementName <> ":\n" <> (renderStrict 
+                                               (layoutPretty defaultLayoutOptions (align err)))))
         Right ast -> [| ast |]
 
 -- | Quasiquoter for 'Stg.Language.Program's.

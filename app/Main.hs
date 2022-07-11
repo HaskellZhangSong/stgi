@@ -23,7 +23,7 @@ main = do
     let numStates = optNumStates opts
         verbosity = optVerbosity opts
 
-    let prog = Example.implies True False
+    let prog = Example.plusOneAndSquare 2
 
     _finalState <-
         runForPager (if ansi then richRenderer else plainRenderer)

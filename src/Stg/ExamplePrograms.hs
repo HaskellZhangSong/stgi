@@ -8,6 +8,8 @@ module Stg.ExamplePrograms (
     -- * Simple introductory programs
 
         implies,
+        polymorphic,
+        plusOneAndSquare,
         addTwoNumbers,
         calculateLength,
         mapNot,
@@ -89,6 +91,26 @@ implies p q = mconcat
                 in or2 notP q
     |]]
 
+plusOneAndSquare :: Int -> Program
+plusOneAndSquare n = mconcat
+    [ toStg "n" n
+    , toStg "one" (1::Int)
+    , Stg.add
+    , Stg.mul
+    , [program| main = \=> let inc = \ => add n one 
+                           in mul inc inc |]]
+
+polymorphic :: Int -> Int -> Program
+polymorphic m n = mconcat 
+    [ Stg.id
+    , Stg.const
+    , toStg "m" m
+    , toStg "n" n
+    , [program| 
+    main = \=> let cid = \ -> const id in
+           cid m n
+    |]]
+
 -- | A program that adds two numbers.
 addTwoNumbers :: Integer -> Integer -> Program
 addTwoNumbers x y = mconcat
@@ -114,7 +136,7 @@ mapNot :: [Bool] -> Program
 mapNot xs = mconcat
     [ Stg.not
     , Stg.map
-    , toStg "xs" xs
+    , toStg "xs" xs 
     , [program|
     main = \ => map not xs
     |]]
